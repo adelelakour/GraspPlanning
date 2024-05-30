@@ -20,11 +20,9 @@ int main(int argc, char* argv[])
     std::cout << " --- START --- " << std::endl;
 
     // --robot robots/iCub/iCub.xml --endeffector "Left Hand" --preshape "Grasp Preshape"
-    std::string robot("robots/ArmarIII/ArmarIII.xml");
+    std::string robot("robots/FRANKA/FrankaParallelGripper.xml");
     VirtualRobot::RuntimeEnvironment::getDataFileAbsolute(robot);
-    std::string eef("Hand R");
-    //std::string object("objects/wok.xml");
-    //std::string object("objects/riceBox.xml");
+    std::string eef("Panda Gripper");
     std::string object("objects/WaterBottleSmall.xml");
     VirtualRobot::RuntimeEnvironment::getDataFileAbsolute(object);
     std::string preshape("");
