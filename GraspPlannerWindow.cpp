@@ -75,11 +75,13 @@ GraspPlannerWindow::GraspPlannerWindow(std::string& robFile, std::string& eefNam
     loadRobot();
     loadObject(objFile);
 
-    buildVisu();
 
+    for (int i = 0 ; i < 20 ; i++) {
+        plan();
+    }
 
-
-    viewer->viewAll();
+    // viewer->viewAll();
+    // buildVisu();
 
     /*SoSensorManager *sensor_mgr = SoDB::getSensorManager();
     SoTimerSensor *timer = new SoTimerSensor(timerCB, this);
@@ -393,6 +395,7 @@ void GraspPlannerWindow::loadRobot()
     eefVisu->ref();
 }
 
+
 void GraspPlannerWindow::plan()
 {
 
@@ -400,6 +403,12 @@ void GraspPlannerWindow::plan()
     bool forceClosure = UI.checkBoxFoceClosure->isChecked();
     float quality = static_cast<float>(UI.doubleSpinBoxQuality->value());
     int nrGrasps = UI.spinBoxGraspNumber->value();
+
+    if (nrGrasps == 0) {
+        // If no grasps requested, stop here and start the function from the beginning
+        return;
+    }
+
     if (planner)
     {
         planner->setParameters(quality, forceClosure);
@@ -450,14 +459,63 @@ void GraspPlannerWindow::plan()
 }
 
 
-
 void GraspPlannerWindow::closeEEF()
 {
-    contacts.clear();
 
     if (eefCloned && eefCloned->getEndEffector(eefName))
     {
         contacts = eefCloned->getEndEffector(eefName)->closeActors(object);
+
+        objectName = object->getName();
+        robotName = robot->getName();
+
+        cout << "This is the size of contacts vector ... " << contacts.size() << endl;
+        if (eef->getActors().size() == 2)
+        {
+            // Compute and print ContactPoints w.r.t Obstacle Local
+            ContactPoints[0] = contacts[0].contactPointObstacleLocal/1000;
+            ContactPoints[1] = contacts[1].contactPointObstacleLocal/1000;
+            ContactPoints[2] = {0,0,0};
+            ContactPoints[3] = {0,0,0};
+
+
+            Approah_direction ={contacts[0].approachDirectionGlobal[0],
+                                contacts[0].approachDirectionGlobal[1],
+                                contacts[0].approachDirectionGlobal[2]};
+        }
+
+        /*if (eef->getActors().size() == 3)
+        {
+            ContactPoints[0] = contacts[0].contactPointObstacleLocal/1000;
+            ContactPoints[1] = contacts[1].contactPointObstacleLocal/1000;
+            ContactPoints[2] = contacts[2].contactPointObstacleLocal/1000;
+            ContactPoints[3] = {0,0,0};
+
+            Approah_direction ={contacts[2].approachDirectionGlobal[0]/1000,
+                                contacts[2].approachDirectionGlobal[1]/1000,
+                                contacts[2].approachDirectionGlobal[2]/1000};
+
+        }
+
+        if (eef->getActors().size() == 4)
+        {
+            ContactPoints[0] = contacts[0].contactPointObstacleLocal/1000;
+            ContactPoints[1] = contacts[1].contactPointObstacleLocal/1000;
+            ContactPoints[2] = contacts[2].contactPointObstacleLocal/1000;
+            ContactPoints[3] = contacts[3].contactPointObstacleLocal/1000;
+
+            Approah_direction ={contacts[2].approachDirectionGlobal[0]/1000,
+                                contacts[2].approachDirectionGlobal[1]/1000,
+                                contacts[2].approachDirectionGlobal[2]/1000};
+
+        }
+*/
+
+        ContactData = std::make_tuple(ContactPoints, robotName, Approah_direction);
+
+
+        save_to_json(objectName, ContactData);
+
         float qual = qualityMeasure->getGraspQuality();
         bool isFC = qualityMeasure->isGraspForceClosure();
         std::stringstream ss;
@@ -476,8 +534,12 @@ void GraspPlannerWindow::closeEEF()
         UI.labelInfo->setText(QString(ss.str().c_str()));
     }
 
+    contacts.clear();
     buildVisu();
+
 }
+
+
 
 void GraspPlannerWindow::openEEF()
 {
