@@ -38,6 +38,11 @@
 #include <Inventor/nodes/SoMatrixTransform.h>
 #include <Inventor/nodes/SoScale.h>
 
+#include <nlohmann/json.hpp>
+#include <Eigen/Geometry>
+
+
+using json = nlohmann::json;
 
 using namespace std;
 using namespace VirtualRobot;
@@ -537,6 +542,68 @@ void GraspPlannerWindow::closeEEF()
     contacts.clear();
     buildVisu();
 
+}
+
+
+
+
+void GraspPlannerWindow::save_to_json(std::string objName, std::tuple<std::array<Vector3f, 4>, std::string, std::array <double,3>> ContactData) {
+
+    auto ContactPoints = std::get<0>(ContactData);
+
+    std::string RobotHand = eef->getName();
+    auto Approah_direction_to_save = std::get<2>(ContactData);
+
+    json newGraspPoints;
+    for (const auto &vector : ContactPoints) {
+        newGraspPoints.push_back(json::array({vector[0], vector[1], vector[2]}));
+    }
+
+    json newApproachDir;
+    newApproachDir = Approah_direction_to_save;
+
+    std::ifstream inputFile("../files/Grasping_Data.json");
+    json jsonData = json::parse(inputFile);
+    inputFile.close();
+
+    std::string objectName = objName;
+
+    if (!jsonData.contains(RobotHand)) {
+        jsonData[RobotHand][objectName]["Grasp0"]["CNT_PNT"] = newGraspPoints;
+        jsonData[RobotHand][objectName]["Grasp0"]["APP_DIR"] = newApproachDir;
+    }
+
+    else {
+        if (jsonData.contains(RobotHand) && !jsonData[RobotHand].contains(objectName)) {
+            // If the object doesn't exist under the RobotHand, create it with new grasp data
+            jsonData[RobotHand][objectName]["Grasp0"]["CNT_PNT"] = newGraspPoints;
+            jsonData[RobotHand][objectName]["Grasp0"]["APP_DIR"] = newApproachDir;
+        } else {
+            // If the object exists, find the last Grasp number and increment it for new data
+            std::string lastKey;
+            for (auto it = jsonData[RobotHand][objectName].begin(); it != jsonData[RobotHand][objectName].end(); ++it) {
+                lastKey = it.key();
+            }
+            int newGraspNumber = std::stoi(lastKey.substr(5)) + 1;
+            std::string newGraspKey = "Grasp" + std::to_string(newGraspNumber);
+            // Append new data instead of overwriting
+            jsonData[RobotHand][objectName][newGraspKey]["CNT_PNT"] = newGraspPoints;
+            jsonData[RobotHand][objectName][newGraspKey]["APP_DIR"] = newApproachDir;
+        }
+    }
+
+    std::ofstream outputFile("../files/Database_19.json");
+    if (outputFile.is_open()) {
+        outputFile << jsonData.dump(4);
+        outputFile.close();
+        std::cout << "New grasp added for object: " << objectName << " under RobotHand: " << RobotHand << std::endl;
+    } else {
+        std::cerr << "Failed to save JSON file." << std::endl;
+    }
+
+
+
+    newGraspPoints.clear();
 }
 
 
