@@ -31,8 +31,13 @@
 
 
 #include <vector>
+#include <Eigen/Dense>
 
 #include "ui_GraspPlanner.h"
+
+
+using Vector3f = Eigen::Vector3f;
+
 
 class GraspPlannerWindow : public QMainWindow
 {
@@ -64,6 +69,8 @@ public slots:
 
     void plan();
     void save();
+
+    void save_to_json(std::string objName, std::tuple<std::array<Vector3f, 4>, std::string, std::array <double,3>> ContactData);
 
     void planObjectBatch();
 protected:
@@ -99,6 +106,15 @@ protected:
     std::string robotFile;
     std::string eefName;
     std::string preshape;
+    std::string objectFile;
+
+    std::string objectName;
+    std::string robotName;
+    int graspNumber = 0;
+    std::array<Vector3f, 4>  ContactPoints;
+    std::array <double,3 > Approah_direction;
+    std::tuple<std::array<Vector3f, 4>, std::string, std::array <double, 3>> ContactData;
+
 
     SoSeparator* eefVisu;
 
