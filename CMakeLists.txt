@@ -6,6 +6,7 @@ find_package(Simox REQUIRED)
 include_directories(/usr/local/include/nlohmann)
 
 set(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
+set(YCB_OBJECTS_PATH "${CMAKE_CURRENT_SOURCE_DIR}/simox/data/objects/YCB/")
 
 IF(Simox_VISUALIZATION AND Simox_USE_COIN_VISUALIZATION)
 
