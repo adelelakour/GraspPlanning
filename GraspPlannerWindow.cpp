@@ -48,6 +48,7 @@ using namespace std;
 using namespace VirtualRobot;
 using namespace GraspStudio;
 
+string Grasping_Json = "../files/Grasping_Data.json";
 //float TIMER_MS = 30.0f;
 
 GraspPlannerWindow::GraspPlannerWindow(std::string& robFile, std::string& eefName, std::string& preshape, std::string& objFile)
@@ -562,7 +563,7 @@ void GraspPlannerWindow::save_to_json(std::string objName, std::tuple<std::array
     json newApproachDir;
     newApproachDir = Approah_direction_to_save;
 
-    std::ifstream inputFile("../files/Grasping_Data.json");
+    std::ifstream inputFile(Grasping_Json);
     json jsonData = json::parse(inputFile);
     inputFile.close();
 
@@ -592,7 +593,7 @@ void GraspPlannerWindow::save_to_json(std::string objName, std::tuple<std::array
         }
     }
 
-    std::ofstream outputFile("../files/Database_19.json");
+    std::ofstream outputFile(Grasping_Json);
     if (outputFile.is_open()) {
         outputFile << jsonData.dump(4);
         outputFile.close();
